@@ -1,0 +1,139 @@
+﻿using System.Data;
+
+namespace BankClassLibrary
+{
+    public class Bank
+    {
+        private string bankName;
+        private string accountnumber;
+        private string accountHolder;
+        private decimal balance;
+        private string sortcode;
+        private decimal overdraftLimit = -1000;
+
+        public Bank(string bankName, string accountnumber, string accountHolder, decimal balance, string sortcode)
+        {
+            this.BankName = bankName;
+            this.AccountNumber = accountnumber;
+            this.AccountHolder = accountHolder;
+            this.Balance = balance;
+            this.SortCode = sortcode;
+        }
+
+        List<string> banknames = new List<string>()
+        {
+            "Bank of America",
+            "Chase Bank",
+            "Wells Fargo",
+            "Citibank",
+            "Nationwide",
+            "Natwest"
+        };
+        public string BankName
+        {
+            get { return this.bankName; }
+            set
+            {
+                if (!banknames.Contains(value))
+                {
+                    throw new ArgumentException("Invalid bank name.");
+                }
+                this.bankName = value;
+
+            }
+        }
+
+        public string AccountNumber
+        {
+            get { return accountnumber; }
+            set
+            {
+                if (value.Length != 8 || !value.All(char.IsDigit))
+                {
+                    throw new ArgumentException("Account number must be exactly 8 digits.");
+                }
+                this.accountnumber = value;
+            }
+        }
+
+        public string AccountHolder
+        {
+            get { return this.accountHolder; }
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Account holder name cannot be empty.");
+                }
+                this.accountHolder = value;
+            }
+        }
+
+        public decimal Balance
+        {
+            get { return this.balance; }
+            set
+            {
+                if (value < this.overdraftLimit)
+                {
+                    throw new ArgumentException("Our credit limit is -1000");
+                }
+                this.balance = value;
+            }
+        }
+
+        public string SortCode
+        {
+            get { return this.sortcode; }
+            set
+            {
+                if (value.Length != 6 || !value.All(char.IsDigit))
+                {
+                    throw new ArgumentException("Sort code must be exactly 6 digits.");
+                }
+                this.sortcode = value;
+            }
+        }
+
+
+        public void Deposit(decimal amount)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Deposit amount must be positive.");
+            }
+            this.Balance += amount;
+        }
+
+        public void Withdraw(decimal amount)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Withdrawal amount must be positive.");
+            }
+            if (this.Balance - amount < this.overdraftLimit)
+            {
+                throw new InvalidOperationException("Insufficient funds. Cannot exceed credit limit of -1000.");
+            }
+            this.Balance -= amount;
+        }
+
+        public void Transfer(Bank targetAccount, decimal amount)
+        {
+            if (targetAccount == null)
+            {
+                throw new ArgumentNullException(nameof(targetAccount), "Target account cannot be null.");
+            }
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Transfer amount must be positive.");
+            }
+            if (this.Balance - amount < this.overdraftLimit)
+            {
+                throw new InvalidOperationException("Insufficient funds. Cannot exceed credit limit of -1000.");
+            }
+            this.Withdraw(amount);
+            targetAccount.Deposit(amount);
+        }
+    }
+}
