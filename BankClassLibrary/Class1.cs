@@ -119,7 +119,7 @@ namespace BankClassLibrary
             this.Balance += amount;
         }
 
-        public void Withdraw(decimal amount)
+        public virtual void Withdraw(decimal amount)
         {
             if (amount <= 0)
             {
@@ -132,7 +132,7 @@ namespace BankClassLibrary
             this.Balance -= amount;
         }
 
-        public void Transfer(Bank targetAccount, decimal amount)
+        public void Transfer(Bank targetAccount, string sortcode, decimal amount)
         {
             if (targetAccount == null)
             {
@@ -146,8 +146,26 @@ namespace BankClassLibrary
             {
                 throw new InvalidOperationException("Insufficient funds. Cannot exceed credit limit of -1000.");
             }
+            if (int.Parse(targetAccount.SortCode) != int.Parse(sortcode))
+            {
+                throw new ArgumentException("Sortcode and Account number dont match");
+            }
             this.Withdraw(amount);
             targetAccount.Deposit(amount);
+        }
+
+        public void SetOverdraftLimit(decimal limit)
+        {
+            if (limit > 0 || limit < -10000)
+            {
+                throw new ArgumentException("Overdraft limit must be between 0 and -10,000.");
+            }
+            this.overdraftLimit = limit;
+        }
+
+        public decimal GetOverdraftlimit()
+        {
+            return this.overdraftLimit;
         }
     }
 }

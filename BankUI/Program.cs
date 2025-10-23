@@ -45,6 +45,9 @@ class Program
                     exit = true;
                     Console.WriteLine("Exiting the system. Goodbye!");
                     break;
+                case "7":
+                    CreatePremiumAccount();
+                    break;
                 default:
                     Console.WriteLine("Invalid choice. Please try again.");
                     break;
@@ -79,6 +82,29 @@ class Program
         }
 
     }
+    static void CreatePremiumAccount()
+    {
+        Console.Write("Enter Bank Name: ");
+        string bankName = Console.ReadLine();
+        Console.Write("Enter Account Holder Name: ");
+        string accountHolder = Console.ReadLine();
+        Console.Write("Enter Initial Deposit Amount: ");
+        decimal initialDeposit = decimal.Parse(Console.ReadLine());
+        Console.Write("Enter Custom Overdraft Limit (e.g., -5000): ");
+        decimal overdraftLimit = decimal.Parse(Console.ReadLine());
+
+        try
+        {
+            CurrentAccountPlus premium = new CurrentAccountPlus(bankName, accountHolder, initialDeposit, overdraftLimit);
+            bankAccounts.Add(premium);
+            Console.WriteLine($"Premium account created. Account Number: {premium.AccountNumber}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
 
     public static Bank FindAccountByNumber(string accountNumber)
     {
@@ -133,7 +159,15 @@ class Program
         }
         try
         {
-            account.Withdraw(withdrawalAmount);
+            if (account is IPremiumAccount premium)
+            {
+                premium.Withdraw(withdrawalAmount);
+            }
+            else
+            {
+                account.Withdraw(withdrawalAmount);
+            }
+
             Console.WriteLine($"Withdrawal successful! New Balance: {account.Balance}");
         }
         catch (ArgumentException ex)
@@ -162,6 +196,8 @@ class Program
         }
         Console.Write("Enter Transfer Amount: ");
         string transferAmountStr = Console.ReadLine();
+        Console.Write("Enter Target Account Sortcode");
+        string sortcode = Console.ReadLine();
         decimal transferAmount;
         while (!decimal.TryParse(transferAmountStr, out transferAmount) || transferAmount <= 0)
         {
@@ -170,7 +206,7 @@ class Program
         }
         try
         {
-            fromAccount.Transfer(toAccount, transferAmount);
+            fromAccount.Transfer(toAccount, sortcode , transferAmount);
             Console.WriteLine($"Transfer successful! Your New Balance: {fromAccount.Balance}");
         }
         catch (ArgumentException ex)
@@ -196,6 +232,7 @@ class Program
         Account Number: {account.AccountNumber}
         Sort Code: {account.SortCode}
         Balance: {account.Balance:C}
+        Overdraft Limit: {account.GetOverdraftlimit()}
         ");
 
 
