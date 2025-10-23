@@ -10,14 +10,28 @@ namespace BankClassLibrary
         private decimal balance;
         private string sortcode;
         private decimal overdraftLimit = -1000;
+        public static int accountCount { get; private set; } = 0;
 
-        public Bank(string bankName, string accountnumber, string accountHolder, decimal balance, string sortcode)
+        private static List<int> existingAccountNumbers = new List<int>();
+        private static List<int> existingSortCodes = new List<int>();
+
+        public Bank(string bankName, string accountHolder, decimal balance)
         {
+            Random random = new Random();
+            int randomAccountNumber = random.Next(10000000, 100000000);
+            int randomSortCode = random.Next(100000, 1000000);
+            while (existingAccountNumbers.Contains(randomAccountNumber) || (existingSortCodes.Contains(randomSortCode)))
+            {
+                randomAccountNumber = random.Next(10000000, 100000000);
+                randomSortCode = random.Next(100000, 1000000);
+            }
+
             this.BankName = bankName;
-            this.AccountNumber = accountnumber;
+            this.AccountNumber = randomAccountNumber.ToString();
             this.AccountHolder = accountHolder;
             this.Balance = balance;
-            this.SortCode = sortcode;
+            this.SortCode = randomSortCode.ToString();
+            accountCount++;
         }
 
         List<string> banknames = new List<string>()
@@ -46,7 +60,7 @@ namespace BankClassLibrary
         public string AccountNumber
         {
             get { return accountnumber; }
-            set
+            private set
             {
                 if (value.Length != 8 || !value.All(char.IsDigit))
                 {
@@ -85,7 +99,7 @@ namespace BankClassLibrary
         public string SortCode
         {
             get { return this.sortcode; }
-            set
+            private set
             {
                 if (value.Length != 6 || !value.All(char.IsDigit))
                 {

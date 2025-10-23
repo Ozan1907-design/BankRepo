@@ -1,19 +1,208 @@
 ﻿using BankClassLibrary;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Program
+{
+    static List<Bank> bankAccounts = new List<Bank>();
 
-Bank bank1 = new Bank("Nationwide", "12345678", "John Doe", 1000.00m, "123456");
-Bank bank2 = new Bank("Natwest", "87654321", "Jane Smith", 2500.50m, "654321");
 
-Console.WriteLine($"Bank 1 Details: {bank1.BankName}, {bank1.SortCode}");
-Console.WriteLine($"Bank 2 Details: {bank2.BankName}, {bank2.SortCode}");
+    static void Main()
+    {
+        bool exit = false;
+        while (exit == false)
+        {
+            Console.WriteLine("""
 
-Console.WriteLine("Depositing 500.00 to Bank 1");
-bank1.Deposit(500.00m);
-Console.WriteLine("Deposited 500.00 to Bank 1 \n Bank 1 Balance is now :");
-Console.WriteLine(bank1.Balance);
+    Welcome to the Bank Account Management System
+    Please select an option:
+    1. Create a new bank account
+    2. Deposit funds
+    3. Withdraw funds
+    4. Transfer funds
+    5. View account details
+    6. Exit
+    """);
+            string choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "1":
+                    CreateAccount();
+                    break;
+                case "2":
+                    DepositFunds();
+                    break;
+                case "3":
+                    WithdrawFunds();
+                    break;
+                case "4":
+                    TransferFunds();
+                    break;
+                case "5":
+                    ViewAccount();
+                    break;
+                case "6":
+                    exit = true;
+                    Console.WriteLine("Exiting the system. Goodbye!");
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice. Please try again.");
+                    break;
+            }
+        }
 
-Console.WriteLine("transferring 300.00 from Bank 1 to Bank 2");
-bank2.Transfer(bank1, 300.00m);
-Console.WriteLine($"Bank 1 new balance: {bank1.Balance} , Bank 2 new Balance: {bank2.Balance}");
+    }
+    public static void CreateAccount()
+    {
+        Console.Write("Enter Bank Name: ");
+        string bankName = Console.ReadLine();
+        Console.Write("Enter Account Holder Name: ");
+        string accountHolder = Console.ReadLine();
+        Console.Write("Enter Initial Deposit Amount: ");
+        string initialDepositStr = Console.ReadLine();
+        decimal initialDeposit;
+        while (!decimal.TryParse(initialDepositStr, out initialDeposit) || initialDeposit < 0)
+        {
+            Console.Write("Invalid amount. Please enter a valid Initial Deposit Amount: ");
+            initialDepositStr = Console.ReadLine();
+        }
+
+        try
+        {
+            Bank newAccount = new Bank(bankName, accountHolder, initialDeposit);
+            bankAccounts.Add(newAccount);
+            Console.WriteLine($"Bank account created successfully! Account Number: {newAccount.AccountNumber}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error creating account: {ex.Message}");
+        }
+
+    }
+
+    public static Bank FindAccountByNumber(string accountNumber)
+    {
+        return bankAccounts.FirstOrDefault(acc => acc.AccountNumber == accountNumber);
+    }
+    public static void DepositFunds()
+    {
+        Console.Write("Enter Account Number: ");
+        string accountNumber = Console.ReadLine();
+        Bank account = FindAccountByNumber(accountNumber);
+        if (account == null)
+        {
+            Console.WriteLine("Account not found.");
+            return;
+        }
+        Console.Write("Enter Deposit Amount: ");
+        string depositAmountStr = Console.ReadLine();
+        decimal depositAmount;
+        while (!decimal.TryParse(depositAmountStr, out depositAmount) || depositAmount <= 0)
+        {
+            Console.Write("Invalid amount. Please enter a valid Deposit Amount: ");
+            depositAmountStr = Console.ReadLine();
+        }
+        try
+        {
+            account.Deposit(depositAmount);
+            Console.WriteLine($"Deposit successful! New Balance: {account.Balance}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error during deposit: {ex.Message}");
+        }
+    }
+
+    public static void WithdrawFunds()
+    {
+        Console.Write("Enter Account Number: ");
+        string accountNumber = Console.ReadLine();
+        Bank account = FindAccountByNumber(accountNumber);
+        if (account == null)
+        {
+            Console.WriteLine("Account not found.");
+            return;
+        }
+        Console.Write("Enter Withdrawal Amount: ");
+        string withdrawalAmountStr = Console.ReadLine();
+        decimal withdrawalAmount;
+        while (!decimal.TryParse(withdrawalAmountStr, out withdrawalAmount) || withdrawalAmount <= 0)
+        {
+            Console.Write("Invalid amount. Please enter a valid Withdrawal Amount: ");
+            withdrawalAmountStr = Console.ReadLine();
+        }
+        try
+        {
+            account.Withdraw(withdrawalAmount);
+            Console.WriteLine($"Withdrawal successful! New Balance: {account.Balance}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error during withdrawal: {ex.Message}");
+        }
+    }
+
+    public static void TransferFunds()
+    {
+        Console.Write("Enter Your Account Number: ");
+        string fromAccountNumber = Console.ReadLine();
+        Bank fromAccount = FindAccountByNumber(fromAccountNumber);
+        if (fromAccount == null)
+        {
+            Console.WriteLine("Your account not found.");
+            return;
+        }
+        Console.Write("Enter Target Account Number: ");
+        string toAccountNumber = Console.ReadLine();
+        Bank toAccount = FindAccountByNumber(toAccountNumber);
+        if (toAccount == null)
+        {
+            Console.WriteLine("Target account not found.");
+            return;
+        }
+        Console.Write("Enter Transfer Amount: ");
+        string transferAmountStr = Console.ReadLine();
+        decimal transferAmount;
+        while (!decimal.TryParse(transferAmountStr, out transferAmount) || transferAmount <= 0)
+        {
+            Console.Write("Invalid amount. Please enter a valid Transfer Amount: ");
+            transferAmountStr = Console.ReadLine();
+        }
+        try
+        {
+            fromAccount.Transfer(toAccount, transferAmount);
+            Console.WriteLine($"Transfer successful! Your New Balance: {fromAccount.Balance}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Error during transfer: {ex.Message}");
+        }
+    }
+
+    public static void ViewAccount()
+    {
+        Console.Write("Enter Account Number: ");
+        string accountNumber = Console.ReadLine();
+        Bank account = FindAccountByNumber(accountNumber);
+        if (account == null)
+        {
+            Console.WriteLine("Account not found.");
+            return;
+        }
+        Console.WriteLine($@"
+        Account Details:
+        {account.AccountHolder}'s Account
+        Bank Name: {account.BankName}
+        Account Number: {account.AccountNumber}
+        Sort Code: {account.SortCode}
+        Balance: {account.Balance:C}
+        ");
+
+
+    }
+}
+
+
 
 
 
